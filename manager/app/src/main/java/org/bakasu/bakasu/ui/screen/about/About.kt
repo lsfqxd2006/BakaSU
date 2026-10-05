@@ -137,8 +137,7 @@ fun AboutScreen() {
             }
 
             item {
-                SegmentedColumn(
-                ) {
+                SegmentedColumn {
                     item {
                         SettingsJumpPageWidget(
                             icon = Icons.TwoTone.Code,

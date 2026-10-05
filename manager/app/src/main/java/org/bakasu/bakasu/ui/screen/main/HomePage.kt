@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.PowerManager
 import android.system.Os
 import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.expandVertically
@@ -13,9 +14,12 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.add
@@ -26,9 +30,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.RotateRight
 import androidx.compose.material.icons.automirrored.twotone.MenuBook
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.outlined.DeveloperMode
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Memory
+import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material.icons.twotone.Android
 import androidx.compose.material.icons.twotone.Block
 import androidx.compose.material.icons.twotone.DeveloperBoard
@@ -47,24 +59,24 @@ import androidx.compose.material.icons.twotone.TaskAlt
 import androidx.compose.material.icons.twotone.Tune
 import androidx.compose.material.icons.twotone.VolunteerActivism
 import androidx.compose.material.icons.twotone.Warning
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenuGroup
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -75,10 +87,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -87,29 +102,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import androidx.annotation.StringRes
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.automirrored.outlined.RotateRight
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.outlined.DeveloperMode
-import androidx.compose.material.icons.outlined.Download
-import androidx.compose.material.icons.outlined.Memory
-import androidx.compose.material.icons.outlined.SystemUpdate
-import androidx.compose.material3.BasicAlertDialog
-import androidx.compose.material3.Surface
-import androidx.compose.material3.surfaceColorAtElevation
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Density
-import org.koin.compose.koinInject
-import org.koin.compose.viewmodel.koinViewModel
-import kotlin.time.Duration.Companion.milliseconds
 import org.bakasu.bakasu.BuildConfig
 import org.bakasu.bakasu.Natives.KernelPatchImplementation
 import org.bakasu.bakasu.R
@@ -154,7 +146,7 @@ import org.koin.compose.viewmodel.koinViewModel
 private data class RebootOption(
     @StringRes val titleRes: Int,
     val reason: String,
-    val icon: ImageVector
+    val icon: ImageVector,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -163,7 +155,7 @@ private fun RebootDialog(
     show: Boolean,
     onDismiss: () -> Unit,
     options: List<RebootOption>,
-    onReboot: (String) -> Unit
+    onReboot: (String) -> Unit,
 ) {
     if (!show) return
 
@@ -185,12 +177,12 @@ private fun RebootDialog(
         CompositionLocalProvider(LocalDensity provides customDensity) {
             Surface(
                 shape = RoundedCornerShape(28.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerHigh
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     Column(
                         modifier = Modifier.padding(top = 4.dp),
-                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
                         options.forEach { option ->
                             Surface(
@@ -200,34 +192,34 @@ private fun RebootDialog(
                                 onClick = {
                                     onDismiss()
                                     onReboot(option.reason)
-                                }
+                                },
                             ) {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 16.dp, vertical = 12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                                    verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     Box(
                                         modifier = Modifier
                                             .size(40.dp)
                                             .background(
                                                 color = MaterialTheme.colorScheme.secondaryContainer,
-                                                shape = CircleShape
+                                                shape = CircleShape,
                                             ),
-                                        contentAlignment = Alignment.Center
+                                        contentAlignment = Alignment.Center,
                                     ) {
                                         Icon(
                                             imageVector = option.icon,
                                             contentDescription = null,
                                             modifier = Modifier.size(20.dp),
-                                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+                                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
                                         )
                                     }
                                     Spacer(modifier = Modifier.width(16.dp))
                                     Text(
                                         text = stringResource(option.titleRes),
-                                        style = MaterialTheme.typography.bodyLarge
+                                        style = MaterialTheme.typography.bodyLarge,
                                     )
                                 }
                             }
@@ -305,10 +297,8 @@ fun HomePage(
             // 状态卡片
             if (uiState.isCoreDataLoaded) {
                 if (uiState.systemStatus.isManager && !uiState.systemStatus.isFullFeatured) {
-                    if ((
-                            uiState.systemStatus.kernelUAPIVersion
-                                ?: 1
-                            ) > uiState.systemStatus.managerUAPIVersion
+                    if ((uiState.systemStatus.kernelUAPIVersion ?: 1) >
+                        uiState.systemStatus.managerUAPIVersion
                     ) {
                         WarningCard(
                             message = stringResource(R.string.require_manager_version),
@@ -593,7 +583,7 @@ private fun TopBar(
         val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager?
         val list = mutableListOf(
             RebootOption(R.string.reboot, "", Icons.Filled.Refresh),
-            RebootOption(R.string.reboot_soft, "soft_reboot", Icons.AutoMirrored.Outlined.RotateRight)
+            RebootOption(R.string.reboot_soft, "soft_reboot", Icons.AutoMirrored.Outlined.RotateRight),
         )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && pm?.isRebootingUserspaceSupported == true) {
             list.add(RebootOption(R.string.reboot_userspace, "userspace", Icons.Filled.Refresh))
@@ -603,8 +593,8 @@ private fun TopBar(
                 RebootOption(R.string.reboot_recovery, "recovery", Icons.Outlined.SystemUpdate),
                 RebootOption(R.string.reboot_bootloader, "bootloader", Icons.Outlined.Memory),
                 RebootOption(R.string.reboot_download, "download", Icons.Outlined.Download),
-                RebootOption(R.string.reboot_edl, "edl", Icons.Outlined.DeveloperMode)
-            )
+                RebootOption(R.string.reboot_edl, "edl", Icons.Outlined.DeveloperMode),
+            ),
         )
         list
     }
@@ -651,7 +641,7 @@ private fun TopBar(
                     }) {
                         Icon(
                             imageVector = Icons.TwoTone.PowerSettingsNew,
-                            contentDescription = stringResource(id = R.string.reboot)
+                            contentDescription = stringResource(id = R.string.reboot),
                         )
                     }
 
@@ -659,7 +649,7 @@ private fun TopBar(
                         show = showRebootDialog,
                         onDismiss = { showRebootDialog = false },
                         options = rebootOptions,
-                        onReboot = { reason -> onReboot(reason) }
+                        onReboot = { reason -> onReboot(reason) },
                     )
                 }
             }
@@ -751,7 +741,6 @@ private fun StatusCard(
                                 containerColor = MaterialTheme.colorScheme.error,
                                 contentColor = MaterialTheme.colorScheme.onError,
                             ),
-
                         ) {
                             Text(stringResource(R.string.home_jailbreak))
                         }
