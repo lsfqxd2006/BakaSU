@@ -53,29 +53,26 @@ extra["managerName"] = project.findProperty("KSU_NAME")?.toString() ?: extra["de
 
 val isSpoofedBuild = project.findProperty("IS_SPOOFED_BUILD")?.toString()?.toBoolean() ?: false
 
-
-fun getGitCommitCount(): Int {
-    return try {
-        val hash = providers.exec {
-            commandLine("git", "ls-remote", "https://github.com/Baka-SU/BakaSU.git", "main")
-        }.standardOutput.asText.get().split("\\s+".toRegex())[0]
-        providers.exec {
-            commandLine("git", "fetch", "https://github.com/Baka-SU/BakaSU.git", "$hash")
-        }
-        providers.exec {
-            commandLine("git", "rev-list", "--count", "$hash")
-        }.standardOutput.asText.get().trim().toInt()
-    } catch (e: Exception) {
-        0
+fun getGitCommitCount(): Int = try {
+    val hash = providers.exec {
+        commandLine("git", "ls-remote", "https://github.com/Baka-SU/BakaSU.git", "main")
+    }.standardOutput.asText.get().split("\\s+".toRegex())[0]
+    providers.exec {
+        commandLine("git", "fetch", "https://github.com/Baka-SU/BakaSU.git", "$hash")
     }
+    providers.exec {
+        commandLine("git", "rev-list", "--count", "$hash")
+    }.standardOutput.asText.get().trim().toInt()
+} catch (e: Exception) {
+    0
 }
 
-fun getGitDescribe(): String {
-    return try {
-        providers.exec { commandLine("git", "ls-remote", "--tags", "--sort=-v:refname", "https://github.com/Baka-SU/BakaSU.git") }
-            .standardOutput.asText.get()
-            .lineSequence()
-            .firstOrNull { it.contains("refs/tags/") && !it.contains("^") }
-            ?.substringAfterLast("/") ?: "unknown"
-    } catch (e: Exception) { "unknown" }
+fun getGitDescribe(): String = try {
+    providers.exec { commandLine("git", "ls-remote", "--tags", "--sort=-v:refname", "https://github.com/Baka-SU/BakaSU.git") }
+        .standardOutput.asText.get()
+        .lineSequence()
+        .firstOrNull { it.contains("refs/tags/") && !it.contains("^") }
+        ?.substringAfterLast("/") ?: "unknown"
+} catch (e: Exception) {
+    "unknown"
 }
