@@ -72,7 +72,7 @@ fun getGitCommitCount(): Int {
 
 fun getGitDescribe(): String {
     return try {
-        providers.exec { commandLine("git", "ls-remote", "--tags", "--sort=-v:refname", "https://github.com/ReSukiSU/ReSukiSU.git") }
+        providers.exec { commandLine("git", "ls-remote", "--tags", "--sort=-v:refname", "https://github.com/Baka-SU/BakaSU.git") }
             .standardOutput.asText.get()
             .lineSequence()
             .firstOrNull { it.contains("refs/tags/") && !it.contains("^") }

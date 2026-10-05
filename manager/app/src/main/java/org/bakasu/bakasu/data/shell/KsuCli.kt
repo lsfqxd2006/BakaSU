@@ -145,15 +145,14 @@ class KsuCliRepository(context: Context) {
         return result
     }
 
-    suspend fun isOfficialSignature(packageResourcePath: String): Boolean =
-        withContext(Dispatchers.IO) {
-            val shell = getRootShell()
-            val out = shell.newJob()
-                .add("${getKsuDaemonPath()} debug get-sign ${shellQuote(packageResourcePath)}")
-                .to(ArrayList<String>(), null).exec().out
-            out.firstOrNull()?.trim()
+    suspend fun isOfficialSignature(packageResourcePath: String): Boolean = withContext(Dispatchers.IO) {
+        val shell = getRootShell()
+        val out = shell.newJob()
+            .add("${getKsuDaemonPath()} debug get-sign ${shellQuote(packageResourcePath)}")
+            .to(ArrayList<String>(), null).exec().out
+        out.firstOrNull()?.trim()
                 .orEmpty() == "size: 0x29c, hash: 224ad6f3436123ed79588192cba9c8892a93bf9b89c8f734413e02afc627174a"
-        }
+    }
 
     suspend fun getFeatureStatus(feature: String): String = withContext(Dispatchers.IO) {
         val shell = getRootShell()
