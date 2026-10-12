@@ -6,8 +6,8 @@ import android.os.Build
 import android.os.PowerManager
 import android.system.Os
 import android.widget.Toast
-import androidx.annotation.StringRes
 import androidx.activity.compose.ReportDrawnWhen
+import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.expandVertically
