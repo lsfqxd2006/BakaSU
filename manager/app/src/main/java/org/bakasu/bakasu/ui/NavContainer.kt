@@ -179,7 +179,7 @@ fun NavContainer(
                         suspendCancellableCoroutine { continuation ->
                             currentCallback = { result ->
                                 callback(result.any { it.value })
-                                continuation.resume(Unit)
+                                continuation.resume(Unit) { _, _, _ -> }
                             }
 
                             if (requestDescription.isNotBlank() && ActivityCompat.shouldShowRequestPermissionRationale(
@@ -222,7 +222,7 @@ fun NavContainer(
                                     result[perm] ?: true
                                 }
                                 callback(finalResult)
-                                continuation.resume(Unit)
+                                continuation.resume(Unit) { _, _, _ -> }
                             }
 
                             permissionsToRequest.forEach { perm ->
