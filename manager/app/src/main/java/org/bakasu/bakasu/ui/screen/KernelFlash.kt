@@ -43,14 +43,10 @@ fun KernelFlashScreen(
 ) {
     val context = LocalContext.current
 
-    val scrollState = rememberScrollState()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val snackBarHost = LocalSnackbarHost.current
-    val scope = rememberCoroutineScope()
     val viewModel = koinViewModel<KernelFlashViewModel>()
     val uiState by viewModel.state.collectAsStateWithLifecycle()
     val flashState = uiState.flash
-    val logSavedString = stringResource(R.string.log_saved)
     val horizonFlashComplete = stringResource(R.string.horizon_flash_complete)
     val logText = buildString {
         append(flashState.logs.joinToString("\n"))

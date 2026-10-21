@@ -648,13 +648,7 @@ private fun TopBar(
         modifier = Modifier.blurEffect(),
         title = {
             Text(
-                text = stringResource(
-                    when (status) {
-                        FlashingStatus.FLASHING -> R.string.flashing
-                        FlashingStatus.SUCCESS -> R.string.flash_success
-                        FlashingStatus.FAILED -> R.string.flash_failed
-                    },
-                ),
+                text = stringResource(status.resId),
                 color = statusColor,
             )
         },

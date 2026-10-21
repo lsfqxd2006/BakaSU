@@ -107,16 +107,17 @@ fun FlashOutputScreen(
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
                 .blurSource(),
         ) {
-            Spacer(Modifier.height(padding.calculateTopPadding()))
+            Spacer(Modifier.height(padding.calculateTopPadding() + 12.dp))
             headerContent?.invoke()
             Box(Modifier.fillMaxWidth().weight(1f).verticalScroll(scrollState)) {
                 LaunchedEffect(state.output) { scrollState.animateScrollTo(scrollState.maxValue) }
-                Text(
-                    state.output,
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontFamily = monospaceFontFamily(),
-                )
+                CatalogCard(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                    Text(
+                        state.output,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontFamily = monospaceFontFamily(),
+                    )
+                }
             }
             Spacer(Modifier.height(padding.calculateBottomPadding()))
         }
@@ -128,6 +129,7 @@ fun FlashOutputScreen(
 private fun FlashOutputTopBar(status: FlashingStatus, onBack: () -> Unit, onSave: () -> Unit, scrollBehavior: TopAppBarScrollBehavior) {
     val themeConfig: ThemeConfig = koinInject()
     val cardConfig: CardConfig = koinInject()
+    val containerColor = if (themeConfig.isEnableBlur) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
     val color = when (status) {
         FlashingStatus.FLASHING -> MaterialTheme.colorScheme.primary
         FlashingStatus.SUCCESS -> MaterialTheme.colorScheme.tertiary
@@ -137,19 +139,13 @@ private fun FlashOutputTopBar(status: FlashingStatus, onBack: () -> Unit, onSave
         modifier = Modifier.blurEffect(),
         title = {
             Text(
-                stringResource(
-                    when (status) {
-                        FlashingStatus.FLASHING -> R.string.flashing
-                        FlashingStatus.SUCCESS -> R.string.flash_success
-                        FlashingStatus.FAILED -> R.string.flash_failed
-                    },
-                ),
+                stringResource(status.resId),
                 color = color,
             )
         },
         navigationIcon = { AppBackButton(onClick = onBack) },
         actions = { IconButton(onClick = onSave) { Icon(Icons.TwoTone.Save, stringResource(R.string.save_log)) } },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = if (themeConfig.isEnableBlur) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)),
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = containerColor, scrolledContainerColor = containerColor),
         windowInsets = TopAppBarDefaults.windowInsets.add(WindowInsets(left = 12.dp)),
         scrollBehavior = scrollBehavior,
     )

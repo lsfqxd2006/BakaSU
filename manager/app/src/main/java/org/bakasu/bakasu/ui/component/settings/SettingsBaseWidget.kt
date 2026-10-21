@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -68,6 +69,7 @@ import org.bakasu.bakasu.ui.component.settings.material3internal.rememberAnimate
 import org.bakasu.bakasu.ui.theme.CardConfig
 import org.bakasu.bakasu.ui.theme.ThemeConfig
 import org.bakasu.bakasu.ui.theme.renderBackgroundBlur
+import org.bakasu.bakasu.ui.util.LocalBackgroundBlurProvided
 import org.koin.compose.koinInject
 
 /**
@@ -134,6 +136,7 @@ fun SettingsBaseWidget(
     foreContent: (@Composable RowScope.() -> Unit)? = null,
     descriptionColumnContent: (@Composable ColumnScope.() -> Unit)? = null,
     containerColor: Color? = null,
+    contentPadding: PaddingValues = ListItemDefaults.ContentPadding,
     contentColor: Color? = null,
     trailingContent: (@Composable BoxScope.(interactionSource: MutableInteractionSource) -> Unit)? = null,
 ) {
@@ -141,6 +144,7 @@ fun SettingsBaseWidget(
     val cardConfig: CardConfig = koinInject()
     val hapticFeedback = LocalHapticFeedback.current
     val alpha = if (enabled) 1f else 0.38f
+    val backgroundBlurProvided = LocalBackgroundBlurProvided.current
 
     val interactionSource = remember { MutableInteractionSource() }
 
@@ -174,7 +178,11 @@ fun SettingsBaseWidget(
 
     val backgroundColor = run {
         if (isOnBackground && themeConfig.isEnableBlurExp) {
-            Color.Transparent
+            if (backgroundBlurProvided && (selected || containerColor != null)) {
+                finalContainerColor
+            } else {
+                Color.Transparent
+            }
         } else {
             finalContainerColor
         }
@@ -270,7 +278,7 @@ fun SettingsBaseWidget(
         .heightIn(min = adaptiveMinHeight)
         .clip(clipShape)
 
-    if (isOnBackground && themeConfig.isEnableBlurExp) {
+    if (isOnBackground && themeConfig.isEnableBlurExp && !backgroundBlurProvided) {
         itemModifier = itemModifier
             .renderBackgroundBlur(finalContainerColor)
     }
@@ -423,7 +431,7 @@ fun SettingsBaseWidget(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(ListItemDefaults.ContentPadding),
+                .padding(contentPadding),
         ) { measurables, constraints ->
             var index = 0
             val leading = if (finalLeadingContent != null) measurables[index++] else null
